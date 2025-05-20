@@ -22,8 +22,9 @@ public class DomainTestService {
     }
 
     try {
-      //TODO use ProcessBuilder which looks cleaner
-      Process process = Runtime.getRuntime().exec(new String[] {"sh", "-c", "ping -c 1 " + domainName});
+      // Use ProcessBuilder for safer command execution
+      ProcessBuilder processBuilder = new ProcessBuilder("ping", "-c", "1", domainName);
+      Process process = processBuilder.start();
       if (!process.waitFor(timeoutMs, TimeUnit.MILLISECONDS)) {
         throw new UnableToTestDomainException("Timed out pinging domain");
       }
@@ -41,7 +42,8 @@ public class DomainTestService {
   }
 
   private static boolean isValidDomainName(String domainName) {
+    // Ensure the domain name matches the regex and does not contain unsafe characters
     Matcher matcher = domainValidationRegex.matcher(domainName);
-    return matcher.find();
+    return matcher.matches() && !domainName.contains(";") && !domainName.contains("&") && !domainName.contains("|");
   }
 }
